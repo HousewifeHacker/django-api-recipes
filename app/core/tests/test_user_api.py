@@ -33,7 +33,7 @@ class PublicUserApiTests(TestCase):
         self.client = APIClient()
 
     def test_create_valid_user_success(self):
-        """Creating using with a valid payload with create user API is successful"""
+        """Create user API with valid payload is successful"""
         payload = {
             'email': 'test@test.com',
             'password': 'testpass',
@@ -49,34 +49,52 @@ class PublicUserApiTests(TestCase):
         self.assertNotIn('password', res.data)
 
     def test_creating_user_that_exists(self):
-        """Creates a user then asserts creating duplicate user with create api fails"""
+        """Test creating user with duplicate email from api fails"""
         payload = {
             'email': 'test@test.com',
             'password': 'testpass',
+            'name': 'name',
         }
         create_user(**payload)
-        res = self.client.post(CREATE_USER_URL, payload)
+        payload2 = {
+            'email': 'test@test.com',
+            'password': 'testpass2',
+            'name': 'name2',
+        }
+        res = self.client.post(CREATE_USER_URL, payload2)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_too_short(self):
-        """Test that password shorter than 5 characters fails to create new user"""
+        """Test that password less than 5 characters fails to create user"""
         payload = {
             'email': 'test@test.com',
             'password': 'pw12',
-        }
-        res = self.client.post(CREATE_USER_URL, payload)
-
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assert_no_user(payload['email']) 
-
-    def test_create_user_requires_password(self):
-        """Test that create user api fails without password"""
-        payload = {
-            'email': 'test@test.com',
+            'name': 'name',
         }
         res = self.client.post(CREATE_USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assert_no_user(payload['email'])
 
+    def test_create_user_requires_password(self):
+        """Test that create user api fails without password"""
+        payload = {
+            'email': 'test@test.com',
+            'name': 'name',
+        }
+        res = self.client.post(CREATE_USER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assert_no_user(payload['email'])
+
+    def test_create_user_requires_name(self):
+        """Test that create user api fails without name"""
+        payload = {
+            'email': 'test@test.com',
+            'passowrd': 'testpass',
+        }
+        res = self.client.post(CREATE_USER_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assert_no_user(payload['email'])
